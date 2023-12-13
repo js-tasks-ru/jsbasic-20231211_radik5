@@ -1,6 +1,34 @@
-let calculator = {
-  // ваш код
-};
+// Первое решение
+/* let calculator = (function (a, b) {
+  return {
+    read(x, y) {
+      a = x;
+      b = y;
+    },
+    sum() {
+      return a + b;
+    },
+    mul() {
+      return a * b;
+    }
+  };
+})(); */
+
+// второе решение
+const calculator = new (function () {
+  let a;
+  let b;
+  this.read = function (x, y) {
+    a = x;
+    b = y;
+  };
+  this.sum = function () {
+    return a + b;
+  };
+  this.mul = function () {
+    return a * b;
+  };
+})();
 
 // НЕ УДАЛЯТЬ СТРОКУ, НУЖНА ДЛЯ ПРОВЕРКИ
 window.calculator = calculator; // делает ваш калькулятор доступным глобально
