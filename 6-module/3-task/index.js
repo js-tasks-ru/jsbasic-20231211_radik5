@@ -2,24 +2,60 @@ import createElement from "../../assets/lib/create-element.js";
 
 export default class Carousel {
   elem;
-  position;
-
+  position = 0;
+  btnLeft;
+  btnRight;
+  divCarousel;
   constructor(slides) {
-    this.position = 0;
     this.slides = slides;
-    console.log("slides length ", slides.length);
-    this.elem = createElement(`
-      <div class="carousel">
-        <!--Кнопки переключения-->
-        <div class="carousel__arrow carousel__arrow_right">
-          <img src="/assets/images/icons/angle-icon.svg" alt="icon"/>
-        </div>
-        <div class="carousel__arrow carousel__arrow_left">
-          <img src="/assets/images/icons/angle-left-icon.svg" alt="icon"/>
-        </div>
-        <div class="carousel__inner"></div>
+    // создание каркаса узла, в котором будут располагатся слайды
+    this.elem = this.renderCarousel();
+    // добавление слайдов
+    this.appendSlidesToCarousel(slides);
+    // добавление обработчика события "добавить в заказ"
+    this.addEventListenerToProductAddButton();
+    // добавление обработчика кликов по кнопкам прокрутки слайдов
+    this.addEventListenerToScrollSlidesLeftRight();
+    // инициализация показа страницы
+    this.initView();
+  }
+  initView() {
+    this.btnLeft = this.elem.querySelector(".carousel__arrow_left");
+    // Получение ссылок на оперируемые объекты
+    this.btnRight = this.elem.querySelector(".carousel__arrow_right");
+    this.divCarousel = this.elem.querySelector(".carousel__inner");
+    // Показываем кнопки прокрутки слайдов в правильном виде
+    this.makeProperViewBtnLeftRight();
+  }
+  makeProperViewBtnLeftRight() {
+    if (this.position == 0) {
+      this.btnRight.style.display = "";
+      this.btnLeft.style.display = "none";
+    }
+    if ((this.position < this.slides.length - 1) & (this.position > 0)) {
+      this.btnRight.style.display = "";
+      this.btnLeft.style.display = "";
+    }
+    if (this.position === this.slides.length - 1) {
+      this.btnRight.style.display = "none";
+      this.btnLeft.style.display = "";
+    }
+  }
+  renderCarousel() {
+    return createElement(`
+    <div class="carousel">
+      <!--Кнопки переключения-->
+      <div class="carousel__arrow carousel__arrow_right">
+        <img src="/assets/images/icons/angle-icon.svg" alt="icon"/>
       </div>
-    `);
+      <div class="carousel__arrow carousel__arrow_left">
+        <img src="/assets/images/icons/angle-left-icon.svg" alt="icon"/>
+      </div>
+      <div class="carousel__inner"></div>
+    </div>
+  `);
+  }
+  appendSlidesToCarousel(slides) {
     let appendNode = this.elem.querySelector(".carousel__inner");
     for (let slide of slides) {
       let nodeSlide = createElement(`
@@ -36,6 +72,8 @@ export default class Carousel {
       `);
       appendNode.appendChild(nodeSlide);
     }
+  }
+  addEventListenerToProductAddButton() {
     this.elem.addEventListener("click", (event) => {
       if (event.target.closest("button")) {
         let btnNode = event.target.closest("button");
@@ -48,63 +86,32 @@ export default class Carousel {
         this.elem.dispatchEvent(customEvent);
       }
     });
-    // Получение ссылок на оперируемые объекты
-    const btnRight = this.elem.querySelector(".carousel__arrow_right");
-    const btnLeft = this.elem.querySelector(".carousel__arrow_left");
-    const divCarousel = this.elem.querySelector(".carousel__inner");
-    btnLeft.style.display = "none";
-
+  }
+  checkIsBtnLeftOrRight(event) {
+    if (
+      event.target.closest("div") === this.btnLeft ||
+      event.target.closest("div") === this.btnRight
+    ) {
+      return true;
+    }
+    return false;
+  }
+  addEventListenerToScrollSlidesLeftRight() {
     // Обработчик событий вправо влево
     this.elem.addEventListener("click", (event) => {
-      let divCarouselWidth = divCarousel.offsetWidth;
-      console.log("divCarousel.offsetWidth ", divCarousel.offsetWidth);
-      console.log("this.position = ", this.position);
-      if (
-        !(
-          event.target.closest("div") === btnLeft ||
-          event.target.closest("div") === btnRight
-        )
-      ) {
+      let divCarouselWidth = this.divCarousel.offsetWidth;
+      if (!this.checkIsBtnLeftOrRight(event)) {
         return;
       }
-
-      if (event.target.closest("div") === btnLeft) {
-        console.log("нажата кнопка btnLeft");
+      if (event.target.closest("div") === this.btnLeft) {
         this.position--;
-        if (this.position === 0) {
-          btnRight.style.display = "";
-          btnLeft.style.display = "none";
-        }
-
-        if (this.position === this.slides.length - 1) {
-          btnRight.style.display = "none";
-          btnLeft.style.display = "";
-        }
-        if ((this.position < this.slides.length - 1) & (this.position > 0)) {
-          btnRight.style.display = "";
-          btnLeft.style.display = "";
-        }
-
-        let shift = this.position * divCarouselWidth; //!
-        divCarousel.style.transform = `translateX(-${shift}px)`;
       } else {
-        console.log("нажата кнопка btnRight");
         this.position++;
-        if (this.position == 0) {
-          btnRight.style.display = "";
-          btnLeft.style.display = "none";
-        } else {
-          btnLeft.style.display = "";
-        }
-        if (this.position === this.slides.length - 1) {
-          btnRight.style.display = "none";
-          btnLeft.style.display = "";
-        } else {
-          btnRight.style.display = "";
-        }
-        let shift = this.position * divCarouselWidth;
-        divCarousel.style.transform = `translateX(-${shift}px)`;
       }
+      // Показываем кнопки прокрутки слайдов в правильном виде
+      this.makeProperViewBtnLeftRight();
+      let shift = this.position * divCarouselWidth;
+      this.divCarousel.style.transform = `translateX(-${shift}px)`;
     });
   }
 }
